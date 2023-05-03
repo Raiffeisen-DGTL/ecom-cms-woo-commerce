@@ -96,7 +96,10 @@ jQuery( function ( $ ) {
                         url: result.payurl
                     });
 
-                    eval('var obj='+result.styles);
+					var obj = "";
+					if (result.styles != "") {
+						obj = result.styles;
+					}
 
                     if (result.receipt) {
                         console.log(result.receipt);
