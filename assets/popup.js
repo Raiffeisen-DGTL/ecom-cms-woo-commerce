@@ -2,7 +2,7 @@
 
 jQuery( function ( $ ) {
 
-
+	console.log('tsesettseset');
 	let rf_popup = {
 		$order_review: $( '#order_review' ),
 		$checkout_form: $( 'form.checkout' ),
@@ -91,6 +91,7 @@ jQuery( function ( $ ) {
 		submitSuccess: function( result ) {
 			try {
 				if ( 'success' === result.result ) {
+					console.log(result);
                     console.log('result',result.popup_type);
                     const paymentPage = new PaymentPageSdk( result.public_id, {
                         url: result.payurl
@@ -99,6 +100,7 @@ jQuery( function ( $ ) {
 					var obj = "";
 					if (result.styles != "") {
 						obj = result.styles;
+						//console.log('fasfas', JSON.parse(obj));
 					}
 
                     if (result.receipt) {

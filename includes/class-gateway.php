@@ -149,9 +149,9 @@ class Gateway extends WC_Payment_Gateway
         $this->client->postCallbackUrl($this->notification_url);
     }
 
-    public function client_check_event_signature($result, $sign, $notice)
+    public function client_check_event_signature($sign, $notice)
     {
-        return null != $result ? $result : $this->client->checkEventSignature($sign, $notice);
+        return $this->client->checkEventSignature($sign, $notice);
     }
 
     public function get_client_order_transaction($bill_id)
@@ -171,7 +171,7 @@ class Gateway extends WC_Payment_Gateway
 
     public function get_client_post_order_refund($refund, $bill_id, $refund_id, $amount, $receipt)
     {
-        return null != $refund ? $refund : $this->client->postOrderRefund($bill_id, $refund_id, $amount, $receipt);
+        return $this->client->postOrderRefund($bill_id, $refund_id, $amount, $receipt);
     }
 
     /**
@@ -206,7 +206,7 @@ class Gateway extends WC_Payment_Gateway
         // Hooks.
         $this->init_hooks();
 
-        $this->title_icon_html = '<img src="' . WC_HTTPS::force_https_url($this->title_icon) . '"  class="rf" />';
+        $this->title_icon_html = $this->get_option('title', $this->method_title).'<br><img src="' . WC_HTTPS::force_https_url($this->title_icon) . '"  class="rf" />';
         $this->icon_html = '<img src="' . WC_HTTPS::force_https_url($this->title_icon) . '"  class="rf" />';
 
         $this->method_description_html = $this->method_description;
@@ -332,6 +332,7 @@ class Gateway extends WC_Payment_Gateway
     public function get_title()
     {
         return apply_filters('woocommerce_gateway_title', $this->title_icon_html, $this->id);
+        //return apply_filters('woocommerce_gateway_title', '$this->title_icon_html', $this->id);
     }
 
     public function title_esc_html($safe_text, $text)
@@ -504,7 +505,8 @@ class Gateway extends WC_Payment_Gateway
         error_log("body: " . $body);
 
         // Check signature.
-        $result = apply_filters('woocommerce_payment_rf_client_check_event_signature', null, $sign, $notice);
+        $result = '';
+        $result = apply_filters('woocommerce_payment_rf_client_check_event_signature', $result, $sign, $notice);
 
         $this->log(
             $result ? 'Получено действительное уведомление' : 'Получено недействительное уведомление',
@@ -599,7 +601,37 @@ class Gateway extends WC_Payment_Gateway
         $url = '';
         $url = apply_filters('woocommerce_payment_rf_client_get_pay_url', $url, $order->get_total(), $bill_id, $params);
 
-        $styles = self::getStyle($this->theme_code);
+        //$styles = self::getStyle($this->theme_code);
+        $styles = $this->get_option('theme_code');
+        preg_match_all('/style:(.*)succ/si', $styles, $output_array);
+            if(!empty($output_array[1])) {
+                $css = $output_array[1][0];
+                //$style = $css;
+            }
+            if(!isset($css)) {
+                $css = $styles;
+            }
+            $css = str_replace(PHP_EOL, '', $css);
+            $css = trim(preg_replace('/\s\s+/', '', $css));
+            $css = str_replace(',},}', '}}', $css);
+            $css = str_replace(',}', '}', $css);
+            $css = str_replace("'", '"', $css);
+            $to_repalce = [
+                'header',
+                'titlePlace',
+                'button',
+                'backgroundColor',
+                'textColor',
+                'hoverTextColor',
+                'hoverBackgroundColor',
+                'borderRadius',
+                'logo',
+            ];
+            foreach ($to_repalce as $item) {
+                $css = str_replace($item, '"'.$item.'"', $css);
+            }
+            $css = str_replace(" ", '', $css);
+            $css = trim($css);
 
         $result = [
             'result' => 'success',
@@ -609,7 +641,7 @@ class Gateway extends WC_Payment_Gateway
             'public_id' => $this->public_id,
             'amount' => $order->get_total(),
             'paymentMethod' => $this->inner_payment_method,
-            'styles' => $styles,
+            'styles' => $css,
             'payurl' => explode('?', $url, 2)[0]
         ];
 
@@ -687,32 +719,23 @@ class Gateway extends WC_Payment_Gateway
             ];
 
             foreach ($order->get_items() as $item_id => $item) {
-                if (empty($refund_items)) {
-                    $item = [
-                        'name' => $item->get_name(),
-                        'quantity' => $item->get_quantity(),
-                        'price' => $item->get_product()->get_sale_price(),
-                        'amount' => $item->get_quantity() * $item->get_product()->get_sale_price(),
-                        'vatType' => $this->vat
-                    ];
-                    $receipt['items'][] = $item;
-                } else {
-                    foreach ($refund_items as $refund_item_id => $refund_item_q) {
-                        if ($item_id == $refund_item_id) {
-                            $item = [
-                                'name' => $item->get_name(),
-                                'quantity' => $refund_item_q,
-                                'price' => $item->get_product()->get_sale_price(),
-                                'amount' => $refund_item_q * $item->get_product()->get_sale_price(),
-                                'vatType' => $this->vat
-                            ];
-                            $receipt['items'][] = $item;
-                        }
+                foreach ($refund_items as $refund_item_id => $refund_item_q) {
+                    if ($item_id == $refund_item_id) {
+                        $item = [
+                            'name' => $item->get_name(),
+                            'quantity' => $refund_item_q,
+                            'price' => $item->get_product()->get_sale_price(),
+                            'amount' => $refund_item_q * $item->get_product()->get_sale_price(),
+                            'vatType' => $this->vat
+                        ];
+                        $receipt['items'][] = $item;
+                        break;
                     }
                 }
             }
 
-            $refund = apply_filters('woocommerce_payment_rf_client_post_order_refund', null, $bill_id, $refund_id, $amount, $receipt);
+            $refund = '';
+            $refund = apply_filters('woocommerce_payment_rf_client_post_order_refund', $refund, $bill_id, $refund_id, $amount, $receipt);
 
             $this->log(
                 'Create bill refund',
