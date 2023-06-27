@@ -604,46 +604,34 @@ class Gateway extends WC_Payment_Gateway
         //$styles = self::getStyle($this->theme_code);
         $styles = $this->get_option('theme_code');
         preg_match_all('/style:(.*)succ/si', $styles, $output_array);
-    
-        if(!empty($output_array[1])) {
-            $css = $output_array[1][0];
-            //$style = $css;
-        }
-        if(!isset($css)) {
-            $css = $styles;
-        }
-        $css = str_replace(PHP_EOL, '', $css);
-        $css = trim(preg_replace('/\s\s+/', '', $css));
-        $css = str_replace(',},}', '}}', $css);
-        $css = str_replace(',}', '}', $css);
-        $css = str_replace("'", '"', $css);
-        $to_repalce = [
-            'header',
-            'titlePlace',
-            'button',
-            'backgroundColor',
-            'textColor',
-            'hoverTextColor',
-            'hoverBackgroundColor',
-            'borderRadius',
-            'logo',
-        ];
-        foreach ($to_repalce as $item) {
-            $css = str_replace($item, '"'.$item.'"', $css);
-        }
-        $css = str_replace(" ", '', $css);
-        $css = trim($css);
-
-        if ($this->enable_fiscal === 'yes') {
-            $this->log(
-                'Sending fiscal',
-                [
-                    'bill_id' => $bill_id,
-                    'params' => $params,
-                ]
-            );
-            $this->client->postPayUrl($order->get_total(), $bill_id, $params);
-        }
+            if(!empty($output_array[1])) {
+                $css = $output_array[1][0];
+                //$style = $css;
+            }
+            if(!isset($css)) {
+                $css = $styles;
+            }
+            $css = str_replace(PHP_EOL, '', $css);
+            $css = trim(preg_replace('/\s\s+/', '', $css));
+            $css = str_replace(',},}', '}}', $css);
+            $css = str_replace(',}', '}', $css);
+            $css = str_replace("'", '"', $css);
+            $to_repalce = [
+                'header',
+                'titlePlace',
+                'button',
+                'backgroundColor',
+                'textColor',
+                'hoverTextColor',
+                'hoverBackgroundColor',
+                'borderRadius',
+                'logo',
+            ];
+            foreach ($to_repalce as $item) {
+                $css = str_replace($item, '"'.$item.'"', $css);
+            }
+            $css = str_replace(" ", '', $css);
+            $css = trim($css);
 
         $result = [
             'result' => 'success',
