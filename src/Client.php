@@ -111,6 +111,13 @@ class Client
     const POST = 'POST';
 
     /**
+     * The API put method.
+     *
+     * @const string
+     */
+    const PUT = 'PUT';
+
+    /**
      * The API delete method.
      *
      * @const string
@@ -548,6 +555,54 @@ class Client
         return $this->requestBuilder($url);
 
     }//end getOrderReceipts()
+
+
+    /**
+     * Create new receipt
+     *
+     * @return array Return result.
+     *
+     * @throws ClientException Throw on API return invalid response.
+     */
+    public function postReceipt($receipt, $receiptType = self::RECEIPT_TYPE_SELL, $baseUrl = self::FISCAL_API_URI)
+    {
+        $url = $baseUrl . '/receipts/' . $receiptType;
+
+        return $this->requestBuilder($url, self::POST, $receipt);
+
+    }//end postReceipt()
+
+
+    /**
+     * Register receipt
+     *
+     * @return array Return result.
+     *
+     * @throws ClientException Throw on API return invalid response.
+     */
+    public function putReceipt($receiptNumber, $receiptType = self::RECEIPT_TYPE_SELL, $baseUrl = self::FISCAL_API_URI)
+    {
+        $url = $baseUrl . '/receipts/' . $receiptType . '/' . $receiptNumber;
+
+        return $this->requestBuilder($url, self::PUT);
+
+    }//end putReceipt()
+
+
+    /**
+     * Get receipt
+     *
+     * @return array Return result.
+     *
+     * @throws ClientException Throw on API return invalid response.
+     */
+    public function getReceipt($receiptNumber, $receiptType = self::RECEIPT_TYPE_SELL, $baseUrl = self::FISCAL_API_URI)
+    {
+        $url = $baseUrl . '/receipts/' . $receiptType . '/' . $receiptNumber;
+
+        return $this->requestBuilder($url, self::GET);
+
+    }//end getReceipt()
 
 
     /**
