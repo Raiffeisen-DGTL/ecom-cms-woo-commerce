@@ -680,7 +680,6 @@ class Gateway extends WC_Payment_Gateway
                     'quantity' => $item->get_quantity(),
                     'price' => $item->get_product()->get_price(),
                     'amount' => $item->get_total(),
-                    'vatType' => $this->vat,
                 ];
                 $receipt['items'][] = $item;
             }
