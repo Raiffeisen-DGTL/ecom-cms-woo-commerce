@@ -518,8 +518,7 @@ class Gateway extends WC_Payment_Gateway
         error_log("body: " . $body);
 
         // Check signature.
-        $result = '';
-        $result = apply_filters('woocommerce_payment_rf_client_check_event_signature', $result, $sign, $notice);
+        $result = apply_filters('woocommerce_payment_rf_client_check_event_signature', $sign, $notice);
 
         $this->log(
             $result ? 'Получено действительное уведомление' : 'Получено недействительное уведомление',
@@ -664,6 +663,10 @@ class Gateway extends WC_Payment_Gateway
         } else
             $result['popup_type'] = 'replace';
 
+        $this->log(
+            'enable_fiscal',
+            $this->enable_fiscal
+        );
         // Add receiept to fiscal mode
         if ($this->enable_fiscal === 'yes') {
             $receipt = [
@@ -675,7 +678,7 @@ class Gateway extends WC_Payment_Gateway
                 $item = [
                     'name' => $item->get_name(),
                     'quantity' => $item->get_quantity(),
-                    'price' => $item->get_product()->get_sale_price(),
+                    'price' => $item->get_product()->get_price(),
                     'amount' => $item->get_total(),
                 ];
                 $receipt['items'][] = $item;
@@ -692,7 +695,7 @@ class Gateway extends WC_Payment_Gateway
             //         'items' => array_map(function (WC_Order_Item $item) {
             //             return [
             //                 'name' => $item->get_name(),
-            //                 'price' => $item->get_product()->get_sale_price(),
+            //                 'price' => $item->get_product()->get_price(),
             //                 'quantity' => $item->get_quantity(),
             //                 'amount' => $item->get_total(),
             //                 'vatType' => $this->vat,
@@ -710,7 +713,7 @@ class Gateway extends WC_Payment_Gateway
             //         'items' => array_map(function (WC_Order_Item $item) {
             //             return [
             //                 'name' => $item->get_name(),
-            //                 'price' => $item->get_product()->get_sale_price(),
+            //                 'price' => $item->get_product()->get_price(),
             //                 'quantity' => $item->get_quantity(),
             //                 'amount' => $item->get_total(),
             //                 'vatType' => $this->vat,
@@ -728,7 +731,7 @@ class Gateway extends WC_Payment_Gateway
                 'items' => array_map(function (WC_Order_Item $item) {
                     return [
                         'name' => $item->get_name(),
-                        'price' => $item->get_product()->get_sale_price(),
+                        'price' => $item->get_product()->get_price(),
                         'quantity' => $item->get_quantity(),
                         'amount' => $item->get_total(),
                         'vatType' => $this->vat,
@@ -810,8 +813,8 @@ class Gateway extends WC_Payment_Gateway
                         $item = [
                             'name' => $item->get_name(),
                             'quantity' => $refund_item_q,
-                            'price' => $item->get_product()->get_sale_price(),
-                            'amount' => $refund_item_q * $item->get_product()->get_sale_price(),
+                            'price' => $item->get_product()->get_price(),
+                            'amount' => $refund_item_q * $item->get_product()->get_price(),
                             'vatType' => $this->vat
                         ];
                         $receipt['items'][] = $item;
