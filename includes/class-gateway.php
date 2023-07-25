@@ -6,6 +6,7 @@ defined('ABSPATH') || exit;
 
 use WC_HTTPS;
 use WC_Order;
+use WC_Order_Item;
 use WC_Payment_Gateway;
 use WP_REST_Server;
 use WP_Error;
@@ -37,6 +38,7 @@ class Gateway extends WC_Payment_Gateway
     protected $vat;
     protected $inner_payment_method;
     protected $enable_fiscal;
+    // protected $fiscal_documents_format;
 
     public static function payment_post()
     {
@@ -299,6 +301,7 @@ class Gateway extends WC_Payment_Gateway
         $this->inner_payment_method = $this->get_option('inner_payment_method');
         $this->vat = $this->get_option('vat');
         $this->enable_fiscal = $this->get_option('enable_fiscal');
+        // $this->fiscal_documents_format = $this->get_option('fiscal_documents_format');
     }
 
 
@@ -441,6 +444,16 @@ class Gateway extends WC_Payment_Gateway
                 'type' => 'checkbox',
                 'default' => 'not',
             ],
+            // 'fiscal_documents_format' => [
+            //     'title' => 'ФФД',
+            //     'description' => 'Формат фискальных документов',
+            //     'type' => 'select',
+            //     'default' => 'FFD_105',
+            //     'options' => array(
+            //         'FFD_105' => 'ФФД 1.05',
+            //         'FFD_12'  => 'ФФД 1.2'
+            //     )
+            // ],
             'use_debug' => [
                 'title' => 'Режим отладки',
                 'description' => 'Включить логирование запросов',
@@ -505,8 +518,7 @@ class Gateway extends WC_Payment_Gateway
         error_log("body: " . $body);
 
         // Check signature.
-        $result = '';
-        $result = apply_filters('woocommerce_payment_rf_client_check_event_signature', $result, $sign, $notice);
+        $result = apply_filters('woocommerce_payment_rf_client_check_event_signature', $sign, $notice);
 
         $this->log(
             $result ? 'Получено действительное уведомление' : 'Получено недействительное уведомление',
@@ -604,34 +616,35 @@ class Gateway extends WC_Payment_Gateway
         //$styles = self::getStyle($this->theme_code);
         $styles = $this->get_option('theme_code');
         preg_match_all('/style:(.*)succ/si', $styles, $output_array);
-            if(!empty($output_array[1])) {
-                $css = $output_array[1][0];
-                //$style = $css;
-            }
-            if(!isset($css)) {
-                $css = $styles;
-            }
-            $css = str_replace(PHP_EOL, '', $css);
-            $css = trim(preg_replace('/\s\s+/', '', $css));
-            $css = str_replace(',},}', '}}', $css);
-            $css = str_replace(',}', '}', $css);
-            $css = str_replace("'", '"', $css);
-            $to_repalce = [
-                'header',
-                'titlePlace',
-                'button',
-                'backgroundColor',
-                'textColor',
-                'hoverTextColor',
-                'hoverBackgroundColor',
-                'borderRadius',
-                'logo',
-            ];
-            foreach ($to_repalce as $item) {
-                $css = str_replace($item, '"'.$item.'"', $css);
-            }
-            $css = str_replace(" ", '', $css);
-            $css = trim($css);
+    
+        if(!empty($output_array[1])) {
+            $css = $output_array[1][0];
+            //$style = $css;
+        }
+        if(!isset($css)) {
+            $css = $styles;
+        }
+        $css = str_replace(PHP_EOL, '', $css);
+        $css = trim(preg_replace('/\s\s+/', '', $css));
+        $css = str_replace(',},}', '}}', $css);
+        $css = str_replace(',}', '}', $css);
+        $css = str_replace("'", '"', $css);
+        $to_repalce = [
+            'header',
+            'titlePlace',
+            'button',
+            'backgroundColor',
+            'textColor',
+            'hoverTextColor',
+            'hoverBackgroundColor',
+            'borderRadius',
+            'logo',
+        ];
+        foreach ($to_repalce as $item) {
+            $css = str_replace($item, '"'.$item.'"', $css);
+        }
+        $css = str_replace(" ", '', $css);
+        $css = trim($css);
 
         $result = [
             'result' => 'success',
@@ -650,6 +663,10 @@ class Gateway extends WC_Payment_Gateway
         } else
             $result['popup_type'] = 'replace';
 
+        $this->log(
+            'enable_fiscal',
+            $this->enable_fiscal
+        );
         // Add receiept to fiscal mode
         if ($this->enable_fiscal === 'yes') {
             $receipt = [
@@ -661,18 +678,91 @@ class Gateway extends WC_Payment_Gateway
                 $item = [
                     'name' => $item->get_name(),
                     'quantity' => $item->get_quantity(),
-                    'price' => $item->get_product()->get_sale_price(),
+                    'price' => $item->get_product()->get_price(),
                     'amount' => $item->get_total(),
                     'vatType' => $this->vat,
                 ];
                 $receipt['items'][] = $item;
             }
             $result['receipt'] = $receipt;
+
+            
+            // if ($this->fiscal_documents_format === 'FFD_105') {
+            //     $rfb_receipt = [
+            //         'receiptNumber' => $bill_id,
+            //         'client' => [
+            //             'email' => $order->get_billing_email(),
+            //         ],
+            //         'items' => array_map(function (WC_Order_Item $item) {
+            //             return [
+            //                 'name' => $item->get_name(),
+            //                 'price' => $item->get_product()->get_price(),
+            //                 'quantity' => $item->get_quantity(),
+            //                 'amount' => $item->get_total(),
+            //                 'vatType' => $this->vat,
+            //             ];
+            //         }, array_values($order->get_items())),
+            //         'total' => $order->get_total(),
+            //     ];
+            // }
+            // elseif ($this->fiscal_documents_format === 'FFD_12') {
+            //     $rfb_receipt = [
+            //         'receiptNumber' => $bill_id,
+            //         'client' => [
+            //             'email' => $order->get_billing_email(),
+            //         ],
+            //         'items' => array_map(function (WC_Order_Item $item) {
+            //             return [
+            //                 'name' => $item->get_name(),
+            //                 'price' => $item->get_product()->get_price(),
+            //                 'quantity' => $item->get_quantity(),
+            //                 'amount' => $item->get_total(),
+            //                 'vatType' => $this->vat,
+            //             ];
+            //         }, array_values($order->get_items())),
+            //         'total' => $order->get_total(),
+            //     ];
+            // }
+
+            $this->create_rfb_receipt([
+                'receiptNumber' => $bill_id,
+                'client' => [
+                    'email' => $order->get_billing_email(),
+                ],
+                'items' => array_map(function (WC_Order_Item $item) {
+                    return [
+                        'name' => $item->get_name(),
+                        'price' => $item->get_product()->get_price(),
+                        'quantity' => $item->get_quantity(),
+                        'amount' => $item->get_total(),
+                        'vatType' => $this->vat,
+                    ];
+                }, array_values($order->get_items())),
+                'total' => $order->get_total(),
+            ]);
         }
 
         return $result;
     }
 
+    protected function create_rfb_receipt($receipt)
+    {
+        $this->log(
+            'Create RFB receipt',
+            $receipt
+        );
+        $response = $this->client->postReceipt($receipt);
+        $this->log(
+            'Create RFB receipt response',
+            $response
+        );
+
+        $response = $this->client->putReceipt($response['receiptNumber']);
+        $this->log(
+            'Register RFB receipt response',
+            $response
+        );
+    }
 
     public function process_payment($order_id)
     {
@@ -724,8 +814,8 @@ class Gateway extends WC_Payment_Gateway
                         $item = [
                             'name' => $item->get_name(),
                             'quantity' => $refund_item_q,
-                            'price' => $item->get_product()->get_sale_price(),
-                            'amount' => $refund_item_q * $item->get_product()->get_sale_price(),
+                            'price' => $item->get_product()->get_price(),
+                            'amount' => $refund_item_q * $item->get_product()->get_price(),
                             'vatType' => $this->vat
                         ];
                         $receipt['items'][] = $item;
