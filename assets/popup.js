@@ -97,10 +97,9 @@ jQuery( function ( $ ) {
                         url: result.payurl
                     });
 
-					var obj = "";
+					var stylesParsed = {};
 					if (result.styles != "") {
-						obj = result.styles;
-						//console.log('fasfas', JSON.parse(obj));
+						stylesParsed = JSON.parse(`{${result.styles}}`);
 					}
 
                     if (result.receipt) {
@@ -112,15 +111,15 @@ jQuery( function ( $ ) {
                                 successUrl: result.success,
                                 paymentMethod: result.paymentMethod,
                                 receipt: result.receipt,
-                                style: obj
+                                style: stylesParsed,
                             }).then(function() {
                                 console.log("Спасибо");
                                 window.location = result.success;
-                            }).catch(function() {
+                            }).catch(function(err) {
                                 console.log("Неудача");
                                 rf_popup.submit_error("Неудача");
                                 window.location.href = "/my-account/orders/";
-                                throw 'Error';
+                                throw err;
                              });
                         } else {
                             paymentPage.replace({
@@ -129,15 +128,15 @@ jQuery( function ( $ ) {
                                 successUrl: result.success,
                                 paymentMethod: result.paymentMethod,
                                 receipt: result.receipt,
-                                style: obj
+                                style: stylesParsed,
                             }).then(function() {
                                 console.log("Спасибо");
                                 window.location = result.success;
-                            }).catch(function() {
+                            }).catch(function(err) {
                                 console.log("Неудача");
                                 rf_popup.submit_error("Неудача");
                                 window.location.href = "/my-account/orders/";
-                                throw 'Error';
+                                throw err;
                              });
                         }
                     } else {
@@ -147,15 +146,15 @@ jQuery( function ( $ ) {
                                 orderId: result.order_id,
                                 successUrl: result.success,
                                 paymentMethod: result.paymentMethod,
-                                style: obj
+                                style: stylesParsed,
                             }).then(function() {
                                 console.log("Спасибо");
                                 window.location = result.success;
-                            }).catch(function() {
+                            }).catch(function(err) {
                                 console.log("Неудача");
                                 rf_popup.submit_error("Неудача");
                                 window.location.href = "/my-account/orders/";
-                                throw 'Error';
+                                throw err;
                              });
                         } else {
                             paymentPage.replace({
@@ -163,15 +162,15 @@ jQuery( function ( $ ) {
                                 orderId: result.order_id,
                                 successUrl: result.success,
                                 paymentMethod: result.paymentMethod,
-                                style: obj
+                                style: stylesParsed,
                             }).then(function() {
                                 console.log("Спасибо");
                                 window.location = result.success;
-                            }).catch(function() {
+                            }).catch(function(err) {
                                 console.log("Неудача");
                                 rf_popup.submit_error("Неудача");
                                 window.location.href = "/my-account/orders/";
-                                throw 'Error';
+                                throw err;
                          });
                         }
                     }
@@ -181,6 +180,7 @@ jQuery( function ( $ ) {
 					throw 'Invalid response';
 				}
 			} catch( err ) {
+				console.error( 'Error:', err );
 
 				// Reload page
 				if ( true === result.reload ) {

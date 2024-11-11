@@ -34,7 +34,7 @@ add_action('woocommerce_init', function () {
 
 
     if (!defined('CLIENT_NAME')) {
-        define('CLIENT_NAME', 'WordPress Woccomerce');
+        define('CLIENT_NAME', 'WordPress Woocomerce');
     }
 
 

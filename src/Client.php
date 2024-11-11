@@ -129,14 +129,14 @@ class Client
      *
      * @const string
      */
-    const HOST_PROD = 'https://e-commerce.raiffeisen.ru';
+    const HOST_PROD = 'https://pay.raif.ru';
 
     /**
      * The test API host.
      *
      * @const string
      */
-    const HOST_TEST = 'https://test.ecom.raiffeisen.ru';
+    const HOST_TEST = 'https://pay-test.raif.ru';
 
     /**
      * The default URL to payment form.
@@ -668,7 +668,7 @@ class Client
             ]
         );
         curl_setopt($curl, CURLOPT_VERBOSE, true);
-        curl_setopt($curl, CURLOPT_STDERR, fopen('/tmp/errorlog.txt', 'w'));
+        // curl_setopt($curl, CURLOPT_STDERR, fopen('/tmp/errorlog.txt', 'w'));
 
         $response = curl_exec($curl);
 
