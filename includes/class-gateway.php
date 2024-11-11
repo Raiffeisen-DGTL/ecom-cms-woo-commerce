@@ -615,7 +615,7 @@ class Gateway extends WC_Payment_Gateway
 
         //$styles = self::getStyle($this->theme_code);
         $styles = $this->get_option('theme_code');
-        preg_match_all('/style:(.*)succ/si', $styles, $output_array);
+        preg_match_all('/style:\s*{\s*(.*?}),\s*},/si', $styles, $output_array);
     
         if(!empty($output_array[1])) {
             $css = $output_array[1][0];
@@ -680,6 +680,7 @@ class Gateway extends WC_Payment_Gateway
                     'quantity' => $item->get_quantity(),
                     'price' => $item->get_product()->get_price(),
                     'amount' => $item->get_total(),
+                    'vatType' => $this->vat,
                 ];
                 $receipt['items'][] = $item;
             }
@@ -723,22 +724,22 @@ class Gateway extends WC_Payment_Gateway
             //     ];
             // }
 
-            $this->create_rfb_receipt([
-                'receiptNumber' => $bill_id,
-                'client' => [
-                    'email' => $order->get_billing_email(),
-                ],
-                'items' => array_map(function (WC_Order_Item $item) {
-                    return [
-                        'name' => $item->get_name(),
-                        'price' => $item->get_product()->get_price(),
-                        'quantity' => $item->get_quantity(),
-                        'amount' => $item->get_total(),
-                        'vatType' => $this->vat,
-                    ];
-                }, array_values($order->get_items())),
-                'total' => $order->get_total(),
-            ]);
+            // $this->create_rfb_receipt([
+            //     'receiptNumber' => $bill_id,
+            //     'client' => [
+            //         'email' => $order->get_billing_email(),
+            //     ],
+            //     'items' => array_map(function (WC_Order_Item $item) {
+            //         return [
+            //             'name' => $item->get_name(),
+            //             'price' => $item->get_product()->get_price(),
+            //             'quantity' => $item->get_quantity(),
+            //             'amount' => $item->get_total(),
+            //             'vatType' => $this->vat,
+            //         ];
+            //     }, array_values($order->get_items())),
+            //     'total' => $order->get_total(),
+            // ]);
         }
 
         return $result;
