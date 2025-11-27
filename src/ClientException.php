@@ -8,7 +8,7 @@
  * @license   MIT https://raw.githubusercontent.com/Raiffeisen-DGTL/ecom-sdk-php/master/LICENSE
  */
 
-namespace RF\Api;
+namespace RaifPay\Api;
 
 use Exception;
 

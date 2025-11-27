@@ -1,6 +1,6 @@
 <?php
 
-namespace RF\Payment;
+namespace RaifPay\Payment;
 
 defined('ABSPATH') || exit;
 
@@ -12,8 +12,8 @@ use WP_REST_Server;
 use WP_Error;
 use Exception;
 use ErrorException;
-use RF\Api\Client;
-use RF\Api\ClientException;
+use RaifPay\Api\Client;
+use RaifPay\Api\ClientException;
 
 class Gateway extends WC_Payment_Gateway
 {
@@ -49,24 +49,24 @@ class Gateway extends WC_Payment_Gateway
     {
 
         wp_enqueue_style(
-            'woocommerce-payment-rf-sync',
+            'raifpay-sync',
             plugins_url('/assets/sync.css', __DIR__),
             [],
             filemtime(dirname(__DIR__) . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'sync.css')
         );
         wp_enqueue_script(
-            'woocommerce-payment-rf-sync',
+            'raifpay-sync',
             plugins_url('/assets/sync.js', __DIR__),
             ['jquery'],
             filemtime(dirname(__DIR__) . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'sync.js'),
             true
         );
         wp_localize_script(
-            'woocommerce-payment-rf-sync',
-            'woocommerce_payment_rf_sync',
+            'raifpay-sync',
+            'raifpay_sync',
             [
                 'url' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('wp_ajax_woocommerce_payment_rf_sync'),
+                'nonce' => wp_create_nonce('wp_ajax_raifpay_sync'),
                 'beforeunload' => 'Остановить синхронизацию ?',
                 'error' => 'Ошибка синхронизации',
                 'end' => 'Синхронизация выполнена',
@@ -90,7 +90,7 @@ class Gateway extends WC_Payment_Gateway
     {
         add_action('admin_menu', function () {
             $sync_page = 'Райффайзенбанк. Синхронизация';
-            add_submenu_page('woocommerce', $sync_page, $sync_page, 'manage_woocommerce', 'woocommerce_payment_rf_sync', ['RF\Payment\Gateway', 'page_sync']);
+            add_submenu_page('woocommerce', $sync_page, $sync_page, 'manage_woocommerce', 'raifpay_sync', ['RaifPay\Payment\Gateway', 'page_sync']);
         }, 51);
     }
 
@@ -114,16 +114,16 @@ class Gateway extends WC_Payment_Gateway
 
     public static function ajax_sync()
     {
-        check_ajax_referer('wp_ajax_woocommerce_payment_rf_sync', 'nonce');
+        check_ajax_referer('wp_ajax_raifpay_sync', 'nonce');
         if (!is_admin()) {
             wp_die('error');
         }
 
         $response = [
-            'nonce' => wp_create_nonce('wp_ajax_woocommerce_payment_rf_sync')
+            'nonce' => wp_create_nonce('wp_ajax_raifpay_sync')
         ];
 
-        $order_id = $_POST['order_id'];
+        $order_id = (int) $_POST['order_id'];
 
         if ($order_id) {
             $payment = wc_get_payment_gateway_by_order($order_id);
@@ -215,12 +215,12 @@ class Gateway extends WC_Payment_Gateway
 
         // Initialise API.
         try {
-            $host = apply_filters('woocommerce_payment_rf_host', $this->env_url);
-            $options = apply_filters('woocommerce_payment_rf_client_options', []);
+            $host = apply_filters('raifpay_host', $this->env_url);
+            $options = apply_filters('raifpay_client_options', []);
 
             $this->client = new Client($this->secret_key, $this->public_id, $host, $options);
 
-            do_action('woocommerce_payment_rf_client_set_callback_url', $this->notification_url);
+            do_action('raifpay_client_set_callback_url', $this->notification_url);
         } catch (ErrorException $exception) {
             wc_add_wp_error_notices(new WP_Error(
                 $exception->getCode(),
@@ -277,14 +277,14 @@ class Gateway extends WC_Payment_Gateway
 
     protected function init_hooks()
     {
-        add_filter('woocommerce_payment_rf_host', [$this, 'get_host'], 50);
-        add_filter('woocommerce_payment_rf_client_options', [$this, 'get_client_options'], 50);
-        add_action('woocommerce_payment_rf_client_set_callback_url', [$this, 'set_client_callback_url'], 50);
-        add_filter('woocommerce_payment_rf_client_check_event_signature', [$this, 'client_check_event_signature'], 50, 3);
-        add_filter('woocommerce_payment_rf_client_get_order_transaction', [$this, 'get_client_order_transaction'], 50, 2);
-        add_filter('woocommerce_payment_rf_client_get_pay_url', [$this, 'get_client_pay_url'], 50, 4);
-        add_filter('woocommerce_payment_rf_client_get_refund_id', [$this, 'get_client_refund_id'], 50);
-        add_filter('woocommerce_payment_rf_client_post_order_refund', [$this, 'get_client_post_order_refund'], 50, 5);
+        add_filter('raifpay_host', [$this, 'get_host'], 50);
+        add_filter('raifpay_client_options', [$this, 'get_client_options'], 50);
+        add_action('raifpay_client_set_callback_url', [$this, 'set_client_callback_url'], 50);
+        add_filter('raifpay_client_check_event_signature', [$this, 'client_check_event_signature'], 50, 3);
+        add_filter('raifpay_client_get_order_transaction', [$this, 'get_client_order_transaction'], 50, 2);
+        add_filter('raifpay_client_get_pay_url', [$this, 'get_client_pay_url'], 50, 4);
+        add_filter('raifpay_client_get_refund_id', [$this, 'get_client_refund_id'], 50);
+        add_filter('raifpay_client_post_order_refund', [$this, 'get_client_post_order_refund'], 50, 5);
     }
 
     protected function init_options()
@@ -518,7 +518,7 @@ class Gateway extends WC_Payment_Gateway
         error_log("body: " . $body);
 
         // Check signature.
-        $result = apply_filters('woocommerce_payment_rf_client_check_event_signature', $sign, $notice);
+        $result = apply_filters('raifpay_client_check_event_signature', $sign, $notice);
 
         $this->log(
             $result ? 'Получено действительное уведомление' : 'Получено недействительное уведомление',
@@ -586,7 +586,7 @@ class Gateway extends WC_Payment_Gateway
             } else {
                 error_log('');
                 $bill = '';
-                $bill = apply_filters('woocommerce_payment_rf_client_get_order_transaction', $bill, $bill_id);
+                $bill = apply_filters('raifpay_client_get_order_transaction', $bill, $bill_id);
                 $order->update_meta_data('paymentmetod', $bill['transaction']['paymentMethod']);
                 $order->save();
                 $this->process_status($bill['transaction']['status']['value'], $order);
@@ -611,7 +611,7 @@ class Gateway extends WC_Payment_Gateway
 
         // Return thank you redirect.
         $url = '';
-        $url = apply_filters('woocommerce_payment_rf_client_get_pay_url', $url, $order->get_total(), $bill_id, $params);
+        $url = apply_filters('raifpay_client_get_pay_url', $url, $order->get_total(), $bill_id, $params);
 
         //$styles = self::getStyle($this->theme_code);
         $styles = $this->get_option('theme_code');
@@ -791,7 +791,7 @@ class Gateway extends WC_Payment_Gateway
         // Generated refund transaction ID.
         try {
             $refund_id = '';
-            $refund_id = apply_filters('woocommerce_payment_rf_client_get_refund_id', $refund_id);
+            $refund_id = apply_filters('raifpay_client_get_refund_id', $refund_id);
         } catch (Exception $exception) {
             return new WP_Error(
                 $exception->getCode(),
@@ -810,6 +810,7 @@ class Gateway extends WC_Payment_Gateway
 
             foreach ($order->get_items() as $item_id => $item) {
                 foreach ($refund_items as $refund_item_id => $refund_item_q) {
+                    $refund_item_q = (int) $refund_item_q;
                     if ($item_id == $refund_item_id) {
                         $item = [
                             'name' => $item->get_name(),
@@ -825,7 +826,7 @@ class Gateway extends WC_Payment_Gateway
             }
 
             $refund = '';
-            $refund = apply_filters('woocommerce_payment_rf_client_post_order_refund', $refund, $bill_id, $refund_id, $amount, $receipt);
+            $refund = apply_filters('raifpay_client_post_order_refund', $refund, $bill_id, $refund_id, $amount, $receipt);
 
             $this->log(
                 'Create bill refund',

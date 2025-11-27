@@ -23,22 +23,22 @@ jQuery( function ( $ ) {
 		request: function ( id, success ) {
 			$.ajax( {
 				type:     'POST',
-				url:      woocommerce_payment_rf_sync.url,
+				url:      raifpay_sync.url,
 				data:     {
-					nonce:    woocommerce_payment_rf_sync.nonce,
-					action:   'woocommerce_payment_rf_sync',
+					nonce:    raifpay_sync.nonce,
+					action:   'raifpay_sync',
 					order_id: id,
 				},
 				dataType: 'json',
 				success:  function (data) {
 					if (data.nonce) {
-						woocommerce_payment_rf_sync.nonce = data.nonce;
+						raifpay_sync.nonce = data.nonce;
 					}
 
 					if (data.message) {
 						if (data.message === 'success') {
 							rf_sync.output.first().text(
-								rf_sync.output.first().text() + woocommerce_payment_rf_sync.success
+								rf_sync.output.first().text() + raifpay_sync.success
 							);
 						} else {
 							rf_sync.add(data.message);
@@ -55,24 +55,24 @@ jQuery( function ( $ ) {
 					}
 				},
 				error:    function () {
-					rf_sync.end(woocommerce_payment_rf_sync.error);
+					rf_sync.end(raifpay_sync.error);
 				}
 			} );
 		},
 		each: function ( ) {
 			if (rf_sync.index === rf_sync.list.length) {
-				rf_sync.end( woocommerce_payment_rf_sync.end );
+				rf_sync.end( raifpay_sync.end );
 
 				return;
 			}
 
 			rf_sync.progress.attr( 'value', rf_sync.index / rf_sync.list.length * 100 );
-			rf_sync.add( woocommerce_payment_rf_sync.single, rf_sync.index + 1, rf_sync.list.length, rf_sync.list[rf_sync.index] );
+			rf_sync.add( raifpay_sync.single, rf_sync.index + 1, rf_sync.list.length, rf_sync.list[rf_sync.index] );
 			rf_sync.request(rf_sync.list[rf_sync.index], rf_sync.each);
 			rf_sync.index++;
 		},
 		beforeunload: function ( ) {
-			return woocommerce_payment_rf_sync.beforeunload;
+			return raifpay_sync.beforeunload;
 		},
 		sync: function ( event ) {
 			event.preventDefault( );

@@ -112,6 +112,9 @@ jQuery( function ( $ ) {
                                 paymentMethod: result.paymentMethod,
                                 receipt: result.receipt,
                                 style: stylesParsed,
+								extra: {
+									apiClient: "Raifpay WooCommerce",
+								},
                             }).then(function() {
                                 console.log("Спасибо");
                                 window.location = result.success;
@@ -129,6 +132,9 @@ jQuery( function ( $ ) {
                                 paymentMethod: result.paymentMethod,
                                 receipt: result.receipt,
                                 style: stylesParsed,
+								extra: {
+									apiClient: "Raifpay WooCommerce",
+								},
                             }).then(function() {
                                 console.log("Спасибо");
                                 window.location = result.success;
@@ -147,6 +153,9 @@ jQuery( function ( $ ) {
                                 successUrl: result.success,
                                 paymentMethod: result.paymentMethod,
                                 style: stylesParsed,
+								extra: {
+									apiClient: "Raifpay WooCommerce",
+								},
                             }).then(function() {
                                 console.log("Спасибо");
                                 window.location = result.success;
@@ -163,6 +172,9 @@ jQuery( function ( $ ) {
                                 successUrl: result.success,
                                 paymentMethod: result.paymentMethod,
                                 style: stylesParsed,
+								extra: {
+									apiClient: "Raifpay WooCommerce",
+								},
                             }).then(function() {
                                 console.log("Спасибо");
                                 window.location = result.success;

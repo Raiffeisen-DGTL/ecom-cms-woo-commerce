@@ -8,24 +8,24 @@
  * @license   MIT https://raw.githubusercontent.com/Raiffeisen-DGTL/ecom-sdk-php/master/LICENSE
  */
 
-namespace RF\Api;
+namespace RaifPay\Api;
 
 use Exception;
 use DateTime;
-use RF\Api\ClientException as ClientException;
+use RaifPay\Api\ClientException as ClientException;
 
-if (false === defined('CLIENT_NAME')) {
+if (false === defined('RAIFPAY_CLIENT_NAME')) {
     //phpcs:disable Squiz.Commenting -- Because contingent constant definition.
     /**
      * The client name fingerprint.
      *
      * @const string
      */
-    define('CLIENT_NAME', 'php_sdk');
+    define('RAIFPAY_CLIENT_NAME', 'php_sdk');
     //phpcs:enable Squiz.Commenting
 }
 
-if (false === defined('CLIENT_VERSION')) {
+if (false === defined('RAIFPAY_CLIENT_VERSION')) {
     //phpcs:disable Squiz.Commenting -- Because contingent constant definition.
     /**
      * The client version fingerprint.
@@ -33,7 +33,7 @@ if (false === defined('CLIENT_VERSION')) {
      * @const string
      */
     define(
-        'CLIENT_VERSION',
+        'RAIFPAY_CLIENT_VERSION',
         @json_decode(
             file_get_contents(dirname(__DIR__) . DIRECTORY_SEPARATOR . 'composer.json'),
             true
@@ -218,7 +218,7 @@ class Client
         curl_setopt_array(
             $this->internalCurl,
             ([
-                    CURLOPT_USERAGENT => CLIENT_NAME . '-' . CLIENT_VERSION,
+                    CURLOPT_USERAGENT => RAIFPAY_CLIENT_NAME . '-' . RAIFPAY_CLIENT_VERSION,
                 ] + $options)
         );
 
